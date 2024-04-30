@@ -33,8 +33,8 @@ def get_lyrics(song, artist):
     
     formatted_song = song.replace(" ","-").replace("'", "").replace(",","").replace(".","").replace("&","and")
     formatted_artist = artist.replace(" ","-").replace("'", "").replace(",","").replace(".","").replace("&","and").replace("with", "and")
-    print(formatted_song)
-    print(formatted_artist)
+
+    print(f"Getting lyrics from {song} by {artist}")
 
     if query_key in cache:
         logging.info(f"Cache hit for song: {song} by {artist}")
@@ -53,13 +53,15 @@ def get_lyrics(song, artist):
         except Exception as e:
 
             if str(response.status_code).startswith('4') or attempts >= 3:
+                print("Request failed, trying playwright.")
                 playw_attempts = 0
 
                 while playw_attempts < 3:
 
                     try:
                         with sync_playwright() as p:
-                            browser = p.chromium.launch(headless=False)
+
+                            browser = p.chromium.launch(headless=True)
                             page = browser.new_page()
                             page.set_default_timeout(60000)
                             page.goto("https://genius.com/", wait_until='domcontentloaded')
@@ -67,7 +69,6 @@ def get_lyrics(song, artist):
 
                             
                             page.focus(input_selector)
-                            print(f"ENTERING {song} {artist}")
                             page.fill('input[name="q"]', f'{song} {clean_string(artist)}')
                             
                             page.wait_for_selector("#iFrameResizer0")
@@ -78,7 +79,6 @@ def get_lyrics(song, artist):
                                     target_frame = frame
                                     break
                             iframe = target_frame
-                            print(f"FRAME FOUND {iframe}")
 
                             iframe.wait_for_selector("mini-song-card a", state="visible", timeout=60000)
                             card = iframe.query_selector("mini-song-card a")
@@ -128,11 +128,8 @@ def get_lyrics(song, artist):
                         logging.warning(f"Song '{song}' by '{artist}' not found on Genius.")
                         return None
                 except e:
-                    print(f"An error has ocurred: {e}")
+                    logging.error(f"An error has ocurred: {e}")
                     return None
             else:
                 logging.error(f"Element was not found: {e}")
                 return None
-
-
-print(get_lyrics("seven", "jung kook"))
