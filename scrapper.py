@@ -39,15 +39,15 @@ Base.metadata.create_all(engine)
 #         lyrics_file.write(f"{song} by {artist}")
 #         lyrics_file.write(song_to_search)
 #         lyrics_file.write("\n\n")
-song = "seven"
-artist = "jung kook"
-lyrics = get_lyrics(song, artist)
 
-try:
-    ex_artist = Artist(name=artist)
-    session.add(ex_artist)
-    ex_song = Song(title=song, artists=[ex_artist], lyrics=lyrics)
-    session.add(ex_song)
-    session.commit()
-except Exception as e:
-    print(f"This error xd {e}")
+for year in range(2005, 2024):
+    
+    for song, artist in get_titles(year).items():
+        try:
+            new_artist = Artist(name=artist)
+            session.add(new_artist)
+            new_song = Song(title=song, artists=[new_artist], lyrics=get_lyrics(song, new_artist.name))
+            session.add(new_song)
+            session.commit()
+        except Exception as e:
+            print(f"This error xd {e}")
