@@ -8,7 +8,10 @@ import re
 logging.basicConfig(level=logging.INFO)
 cache = TTLCache(maxsize=100, ttl=3600)
 
-def clean_string(text):
+def clean_string(text:str) -> str:
+    """
+    Formats a string to a genius search pattern to make it more likely to appear in the PlayWright scrap
+    """
     transformed_text = (text.lower()
                         .replace("-", " ")
                         .replace("with", "and")
@@ -18,21 +21,35 @@ def clean_string(text):
     result = re.sub(pattern, '', transformed_text, flags=re.IGNORECASE)
     return result.strip()
 
-def get_lyrics(song, artist):
+def clean_link(text:str) -> str:
     """
-    Fetches song lyrics using the lyricsgenius library with caching to reduce API calls.
+    Formats a string to a link format with genius url pattern
+    """
+    transformed_text = (text.lower()
+                        .replace(" ","-")
+                        .replace("'", "")
+                        .replace(",","")
+                        .replace(".","")
+                        .replace("&","and"))
+    return transformed_text
+
+def get_lyrics(song:str, artist:str) -> str | None:
+    """
+    Fetches song lyrics using the lyricsgenius library with caching to reduce API calls. Tries BS4 in case the link is easily searchable,
+    if 404 or out of tries (3), tries playwright sync and looks for the top result if it's a song, or the first song if top result is 
+    anything else. Implements a cache for faster results on previously scrapped songs.
     
     Args:
     song (str): The title of the song.
-    artist (str): The name of the artist.
+    artist (str): The name of the artist/s, better if separated by "and" or comma.
 
     Returns:
     str: The lyrics of the song or None if not found or on error.
     """
     query_key = f"{song.lower()}_{artist.lower()}"
     
-    formatted_song = song.replace(" ","-").replace("'", "").replace(",","").replace(".","").replace("&","and")
-    formatted_artist = artist.replace(" ","-").replace("'", "").replace(",","").replace(".","").replace("&","and").replace("with", "and")
+    formatted_song = clean_link(song)
+    formatted_artist = clean_link(artist).replace("with", "and")
 
     print(f"Getting lyrics from {song} by {artist}")
 
