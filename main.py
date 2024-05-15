@@ -31,12 +31,11 @@ for year in range(2005, 2024):
         try:
             artist_list = (artist.lower()
                            .replace(" x ", ",")
-                           .replace("&", ",")
-                           .replace("featuring",",")
+                           .replace(" & ", ",")
+                           .replace(" featuring ",",")
                            .replace(" ft. ", ",")
                            .replace(" ft ", ",")
-                           .replace(" ,", "")
-                           .replace(", ", "")
+                           .replace("with")
                            .split(","))
 
 
